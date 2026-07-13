@@ -3,7 +3,7 @@
 import { UseFormReturn, useWatch } from "react-hook-form";
 import type { RegisterFormValues } from "@/lib/validators";
 import {
-  Select, Input, Checkbox, SectionHeader, FormGrid, FormSpan
+  Select, Input, Checkbox, SectionHeader, FormGrid, FormSpan, UPPERCASE_INPUT
 } from "@/components/ui";
 import { SECTORS, TARGET_GROUPS } from "@/lib/constants";
 
@@ -57,6 +57,7 @@ export function ProgramSection({ form }: Props) {
           <FormSpan cols={2}>
             <Input
               label="Previous GIP Availment Details"
+              className={UPPERCASE_INPUT}
               placeholder="e.g. Batch 2024-01, Agriculture Sector"
               hint="Provide batch and year of previous participation"
               error={errors.PREVIOUS_GIP_AVAILMENT?.message}

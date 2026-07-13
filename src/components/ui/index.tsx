@@ -38,6 +38,11 @@ Button.displayName = "Button";
 
 // ── Input ─────────────────────────────────────────────────────
 
+// Free-text entries are shown upper-cased as the applicant types; the Zod schema
+// applies the same transform on submit, so the stored value matches what's shown.
+// Placeholders stay in normal case so the examples/hints remain readable.
+export const UPPERCASE_INPUT = "uppercase placeholder:normal-case";
+
 interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
   label?: string;
   error?: string;

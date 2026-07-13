@@ -6,11 +6,32 @@
 // ============================================================
 
 import { NextRequest, NextResponse } from "next/server";
+import { API_ACTIONS, COOKIE_KEYS } from "@/lib/constants";
 
 const GAS_URL    = process.env.NEXT_PUBLIC_GAS_URL!;
 const API_SECRET = process.env.NEXT_PUBLIC_API_SECRET ?? "";
 
+// This proxy holds the GAS secret, so an unauthenticated caller could otherwise
+// read every applicant's PII straight off /api/gip. Only the two actions the
+// public pages (/register, /login) legitimately need are open; everything else
+// requires a session, matching the page-level check in middleware.ts.
+const PUBLIC_ACTIONS: string[] = [API_ACTIONS.REGISTER, API_ACTIONS.LOGIN];
+
+function isAuthorized(request: NextRequest): boolean {
+  const action = request.nextUrl.searchParams.get("action") ?? "";
+  if (PUBLIC_ACTIONS.includes(action)) return true;
+  return Boolean(request.cookies.get(COOKIE_KEYS.SESSION)?.value);
+}
+
+const unauthorized = () =>
+  NextResponse.json(
+    { success: false, error: "Unauthorized — please sign in.", code: "401" },
+    { status: 401 }
+  );
+
 export async function GET(request: NextRequest) {
+  if (!isAuthorized(request)) return unauthorized();
+
   try {
     // Forward all query params from the browser to GAS
     const incoming = request.nextUrl.searchParams;
@@ -47,6 +68,8 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
+  if (!isAuthorized(request)) return unauthorized();
+
   try {
     const incoming = request.nextUrl.searchParams;
     const gasUrl   = new URL(GAS_URL);

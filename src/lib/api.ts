@@ -35,7 +35,7 @@ function withTimeout<T>(promise: Promise<T>, ms = DEFAULT_TIMEOUT_MS): Promise<T
 
 async function gasRequest<T>(
   action: string,
-  payload?: Record<string, unknown>
+  payload?: object
 ): Promise<ApiResponse<T>> {
   try {
     const url = new URL(PROXY, window.location.origin);
@@ -88,15 +88,15 @@ async function gasGet<T>(
 // ── API Functions ─────────────────────────────────────────────
 
 export async function registerApplicant(payload: RegisterPayload): Promise<ApiResponse<RegistrationResult>> {
-  return gasRequest<RegistrationResult>(API_ACTIONS.REGISTER, payload as Record<string, unknown>);
+  return gasRequest<RegistrationResult>(API_ACTIONS.REGISTER, payload);
 }
 
 export async function updateDocument(payload: DocumentUpdatePayload): Promise<ApiResponse<DocumentUpdateResult>> {
-  return gasRequest<DocumentUpdateResult>(API_ACTIONS.UPDATE_DOCUMENT, payload as Record<string, unknown>);
+  return gasRequest<DocumentUpdateResult>(API_ACTIONS.UPDATE_DOCUMENT, payload);
 }
 
 export async function approveApplicant(payload: ApprovalPayload): Promise<ApiResponse<ApprovalResult>> {
-  return gasRequest<ApprovalResult>(API_ACTIONS.APPROVE, payload as Record<string, unknown>);
+  return gasRequest<ApprovalResult>(API_ACTIONS.APPROVE, payload);
 }
 
 export async function getDashboard(): Promise<ApiResponse<DashboardStats>> {
@@ -127,11 +127,11 @@ export async function getBatches(): Promise<ApiResponse<Batch[]>> {
 }
 
 export async function generateTransmittal(filters: TransmittalFilters): Promise<ApiResponse<TransmittalData>> {
-  return gasRequest<TransmittalData>(API_ACTIONS.GENERATE_TRANSMITTAL, filters as Record<string, unknown>);
+  return gasRequest<TransmittalData>(API_ACTIONS.GENERATE_TRANSMITTAL, filters);
 }
 
 export async function loginUser(payload: LoginPayload): Promise<ApiResponse<{ user: AuthUser; token: string }>> {
-  return gasRequest<{ user: AuthUser; token: string }>(API_ACTIONS.LOGIN, payload as Record<string, unknown>);
+  return gasRequest<{ user: AuthUser; token: string }>(API_ACTIONS.LOGIN, payload);
 }
 
 export function getErrorMessage(response: ApiResponse<unknown>): string {

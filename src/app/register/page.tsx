@@ -1,11 +1,14 @@
 "use client";
 
 import { useState, useCallback } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, type Resolver } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
 import { RegisterSchema, type RegisterFormValues } from "@/lib/validators";
 import { registerApplicant, isApiSuccess } from "@/lib/api";
+import { composeAddress } from "@/lib/utils";
+import { useKeyboardAwareForm } from "@/hooks/useKeyboardAwareForm";
+import type { RegisterPayload } from "@/types";
 
 import { FormProgress, FORM_STEPS } from "@/components/register/FormProgress";
 import { PersonalInfoSection }       from "@/components/register/PersonalInfoSection";
@@ -21,7 +24,10 @@ import { Button, Card }               from "@/components/ui";
 const STEP_FIELDS: Record<number, (keyof RegisterFormValues)[]> = {
   1: ["SURNAME", "FIRST_NAME", "DATE_OF_BIRTH", "PLACE_OF_BIRTH", "SEX", "CIVIL_STATUS"],
   2: ["CONTACT_NUMBER"],
-  3: ["PRESENT_ADDRESS", "MUNICIPALITY", "BARANGAY"],
+  3: [
+    "PRESENT_STREET", "MUNICIPALITY", "BARANGAY",
+    "PERMANENT_STREET", "PERMANENT_MUNICIPALITY", "PERMANENT_BARANGAY",
+  ],
   4: [],
   5: ["EDUCATIONAL_STATUS", "SCHOOL_NAME"],
   6: ["SECTOR", "TARGET_GROUP"],
@@ -29,6 +35,8 @@ const STEP_FIELDS: Record<number, (keyof RegisterFormValues)[]> = {
 };
 
 export default function RegisterPage() {
+  useKeyboardAwareForm();
+
   const router = useRouter();
   const [currentStep, setCurrentStep]       = useState(1);
   const [completedSteps, setCompletedSteps] = useState<Set<number>>(new Set());
@@ -36,10 +44,14 @@ export default function RegisterPage() {
   const [submitError, setSubmitError]       = useState<string | null>(null);
 
   const form = useForm<RegisterFormValues>({
-    resolver: zodResolver(RegisterSchema),
+    // Zod .default() fields are optional on the schema's input type but required on
+    // its output type, so zodResolver's inferred generic doesn't line up with the
+    // output-shaped RegisterFormValues. Parsing applies the defaults at runtime.
+    resolver: zodResolver(RegisterSchema) as Resolver<RegisterFormValues>,
     mode: "onTouched",
     defaultValues: {
       CITIZENSHIP: "FILIPINO",
+      SAME_AS_PRESENT: true,
       FIRST_TIME_APPLICANT: true,
       WITH_SUMMER_CLASS: false,
       GRADUATING_NEXT_YEAR: false,
@@ -77,7 +89,31 @@ export default function RegisterPage() {
   const handleSubmit = form.handleSubmit(async (data: RegisterFormValues) => {
     setIsSubmitting(true);
     setSubmitError(null);
-    const res = await registerApplicant(data);
+
+    // The street/barangay/municipality parts are form-only — the sheet stores one
+    // composed cell per address, so build those and drop the parts from the payload.
+    const {
+      PRESENT_STREET,
+      SAME_AS_PRESENT,
+      PERMANENT_STREET,
+      PERMANENT_MUNICIPALITY,
+      PERMANENT_BARANGAY,
+      ...applicant
+    } = data;
+
+    const PRESENT_ADDRESS = composeAddress(
+      PRESENT_STREET, applicant.BARANGAY, applicant.MUNICIPALITY
+    );
+
+    const payload: RegisterPayload = {
+      ...applicant,
+      PRESENT_ADDRESS,
+      PERMANENT_ADDRESS: SAME_AS_PRESENT
+        ? PRESENT_ADDRESS
+        : composeAddress(PERMANENT_STREET, PERMANENT_BARANGAY, PERMANENT_MUNICIPALITY),
+    };
+
+    const res = await registerApplicant(payload);
     if (isApiSuccess(res)) {
       const params = new URLSearchParams({
         gipId:     res.data.GIP_ID,
@@ -134,8 +170,9 @@ export default function RegisterPage() {
         </div>
       </div>
 
-      {/* Sticky progress */}
-      <div className="bg-white border-b border-gray-100 shadow-sm sticky top-0 z-20">
+      {/* Progress — not sticky on phones: with the keyboard open the viewport is
+          already short, and a pinned bar would cover the field being typed into. */}
+      <div className="bg-white border-b border-gray-100 shadow-sm relative sm:sticky sm:top-0 z-20">
         <div className="max-w-4xl mx-auto px-4 py-4">
           <FormProgress
             currentStep={currentStep}
@@ -145,8 +182,9 @@ export default function RegisterPage() {
         </div>
       </div>
 
-      {/* Body */}
-      <div className="max-w-4xl mx-auto px-4 py-8">
+      {/* Body — the tall bottom padding on phones is scroll room, so the last
+          field can still be centred above the keyboard instead of behind it. */}
+      <div className="max-w-4xl mx-auto px-4 pt-8 pb-[35vh] sm:pb-8">
         <form onSubmit={handleSubmit} noValidate>
           <div key={currentStep} style={{ animation: "fadeSlideIn 0.25s ease-out" }}>
             <Card padding="lg">

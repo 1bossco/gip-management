@@ -7,7 +7,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { isApiSuccess } from "@/lib/api";
-import type { DashboardStats } from "@/types";
+import type { ApiResponse, DashboardStats } from "@/types";
 
 export interface DashboardDateRange {
   from: string; // yyyy-MM-dd or "" for all time
@@ -47,7 +47,7 @@ export function useDashboard(): UseDashboardReturn {
         cache:  "no-store",
       });
 
-      const data = await res.json();
+      const data = (await res.json()) as ApiResponse<DashboardStats>;
 
       if (isApiSuccess(data)) {
         setStats(data.data);

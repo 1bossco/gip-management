@@ -197,6 +197,24 @@ export function titleCase(str: string): string {
     .join(" ");
 }
 
+// ── Address ───────────────────────────────────────────────────
+
+// The applicant only types the house no./street; barangay and municipality come
+// from the dropdowns. This joins them into the single cell the sheet stores.
+// Empty parts are dropped so a blank street never leaves a dangling comma.
+
+export function composeAddress(
+  street: string,
+  barangay: string,
+  municipality: string
+): string {
+  return [street, barangay, municipality, "BATAAN"]
+    .map((part) => part.trim())
+    .filter(Boolean)
+    .join(", ")
+    .toUpperCase();
+}
+
 // ── Cookie Helpers (client-side) ──────────────────────────────
 
 export function getCookie(name: string): string | null {

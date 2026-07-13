@@ -198,8 +198,8 @@ function ApprovalButtons({
         // Update row locally — triggers re-render and tab count update
         onUpdate(row.GIP_ID, {
           APPLICATION_STATUS: res.data.APPLICATION_STATUS,
-          APPROVED_BY:        res.data.APPROVED_BY   as never,
-          DATE_APPROVED:      res.data.DATE_APPROVED  as never,
+          APPROVED_BY:        res.data.APPROVED_BY,
+          DATE_APPROVED:      res.data.DATE_APPROVED,
         });
       } else {
         setError(res.error ?? "Action failed");

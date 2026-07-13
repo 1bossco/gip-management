@@ -4,7 +4,8 @@
 // ============================================================
 
 import { z } from "zod";
-import { MUNICIPALITIES, SECTORS } from "./constants";
+import { ADDRESS_MUNICIPALITIES, SECTORS } from "./constants";
+import type { Sector } from "@/types";
 
 // ── Reusable primitives ───────────────────────────────────────
 
@@ -17,16 +18,20 @@ const requiredString = (label: string) =>
     })
     .min(1, `${label} is required`);
 
+// Every free-text entry is stored upper-cased. EMAIL is excluded — addresses are
+// case-sensitive before the @ and upper-casing them can break delivery.
+const upper = (val: string) => val.toUpperCase();
+
 // ── Personal Information ──────────────────────────────────────
 
 export const PersonalInfoSchema = z.object({
-  SURNAME: requiredString("Surname").max(60),
+  SURNAME: requiredString("Surname").max(60).transform(upper),
 
-  FIRST_NAME: requiredString("First Name").max(60),
+  FIRST_NAME: requiredString("First Name").max(60).transform(upper),
 
-  MIDDLE_NAME: z.string().max(60).default(""),
+  MIDDLE_NAME: z.string().max(60).transform(upper).default(""),
 
-  EXTENSION_NAME: z.string().max(10).default(""),
+  EXTENSION_NAME: z.string().max(10).transform(upper).default(""),
 
   DATE_OF_BIRTH: requiredString("Date of Birth").refine(
     (val) => {
@@ -51,9 +56,9 @@ export const PersonalInfoSchema = z.object({
     }
   ),
 
-  PLACE_OF_BIRTH: requiredString("Place of Birth").max(100),
+  PLACE_OF_BIRTH: requiredString("Place of Birth").max(100).transform(upper),
 
-  CITIZENSHIP: z.string().default("FILIPINO"),
+  CITIZENSHIP: z.string().transform(upper).default("FILIPINO"),
 
   SEX: z.enum(["MALE", "FEMALE"], {
     required_error: "Sex is required",
@@ -81,29 +86,42 @@ export const ContactSchema = z.object({
     .or(z.literal(""))
     .default(""),
 
-  FACEBOOK_NAME: z.string().max(100).default(""),
+  FACEBOOK_NAME: z.string().max(100).transform(upper).default(""),
 });
 
 // ── Address ───────────────────────────────────────────────────
 
+// The applicant types only the house no. / street. Barangay and municipality are
+// picked from dependent dropdowns, and PRESENT_ADDRESS / PERMANENT_ADDRESS are
+// composed from those parts on submit (see composeAddress).
+//
+// MUNICIPALITY / BARANGAY always describe the PRESENT address — the monitoring
+// filters and dashboard group on them, so they must not drift to the permanent one.
+
 export const AddressSchema = z.object({
-  PRESENT_ADDRESS: requiredString("Present Address").max(255),
+  PRESENT_STREET: requiredString("House No. / Street").max(150).transform(upper),
 
-  PERMANENT_ADDRESS: z.string().max(255).default(""),
-
-  MUNICIPALITY: z.enum(MUNICIPALITIES as [string, ...string[]], {
+  MUNICIPALITY: z.enum(ADDRESS_MUNICIPALITIES as [string, ...string[]], {
     required_error: "Municipality is required",
   }),
 
-  BARANGAY: requiredString("Barangay").max(80),
+  BARANGAY: requiredString("Barangay").max(80).transform(upper),
+
+  SAME_AS_PRESENT: z.boolean().default(true),
+
+  PERMANENT_STREET: z.string().max(150).transform(upper).default(""),
+
+  PERMANENT_MUNICIPALITY: z.string().max(60).transform(upper).default(""),
+
+  PERMANENT_BARANGAY: z.string().max(80).transform(upper).default(""),
 });
 
 // ── Family Information ────────────────────────────────────────
 
 export const FamilySchema = z.object({
-  FATHER_NAME: z.string().max(120).default(""),
+  FATHER_NAME: z.string().max(120).transform(upper).default(""),
 
-  FATHER_OCCUPATION: z.string().max(100).default(""),
+  FATHER_OCCUPATION: z.string().max(100).transform(upper).default(""),
 
   FATHER_CONTACT: z
     .string()
@@ -111,9 +129,9 @@ export const FamilySchema = z.object({
     .or(z.literal(""))
     .default(""),
 
-  MOTHER_NAME: z.string().max(120).default(""),
+  MOTHER_NAME: z.string().max(120).transform(upper).default(""),
 
-  MOTHER_OCCUPATION: z.string().max(100).default(""),
+  MOTHER_OCCUPATION: z.string().max(100).transform(upper).default(""),
 
   MOTHER_CONTACT: z
     .string()
@@ -132,13 +150,13 @@ export const EducationBaseSchema = z.object({
     }
   ),
 
-  SCHOOL_NAME: requiredString("School Name").max(150),
+  SCHOOL_NAME: requiredString("School Name").max(150).transform(upper),
 
-  COURSE: z.string().max(100).default(""),
+  COURSE: z.string().max(100).transform(upper).default(""),
 
-  YEAR_LEVEL: z.string().max(20).default(""),
+  YEAR_LEVEL: z.string().max(20).transform(upper).default(""),
 
-  SHS_TRACK: z.string().max(80).default(""),
+  SHS_TRACK: z.string().max(80).transform(upper).default(""),
 
   WITH_SUMMER_CLASS: z.boolean().default(false),
 
@@ -169,7 +187,7 @@ export const EducationSchema = EducationBaseSchema.superRefine(
 
 export const ProgramSchema = z.object({
   SECTOR: z.enum(
-    SECTORS.map((s) => s.value) as [string, ...string[]],
+    SECTORS.map((s) => s.value) as [Sector, ...Sector[]],
     {
       required_error: "Sector is required",
     }
@@ -184,7 +202,7 @@ export const ProgramSchema = z.object({
 
   FIRST_TIME_APPLICANT: z.boolean().default(true),
 
-  PREVIOUS_GIP_AVAILMENT: z.string().max(100).default(""),
+  PREVIOUS_GIP_AVAILMENT: z.string().max(100).transform(upper).default(""),
 });
 
 // ── Document Checkboxes ───────────────────────────────────────
@@ -241,6 +259,26 @@ export const RegisterSchema = PersonalInfoSchema.merge(ContactSchema)
         path: ["SHS_TRACK"],
         message: "SHS Track is required for SHS students",
       });
+    }
+
+    // A separate permanent address must be complete, or it composes to a partial
+    // cell like ", ORANI, BATAAN" with no street or barangay.
+    if (!data.SAME_AS_PRESENT) {
+      const permanent = [
+        ["PERMANENT_STREET",       "House No. / Street"],
+        ["PERMANENT_MUNICIPALITY", "Municipality"],
+        ["PERMANENT_BARANGAY",     "Barangay"],
+      ] as const;
+
+      for (const [field, label] of permanent) {
+        if (!data[field]) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            path: [field],
+            message: `Permanent ${label} is required`,
+          });
+        }
+      }
     }
   });
 

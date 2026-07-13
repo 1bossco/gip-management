@@ -201,6 +201,8 @@ export interface ApplicantRow {
   MIDDLE_NAME: string;
   MUNICIPALITY: string;
   BARANGAY: string;
+  SEX: Sex;
+  CIVIL_STATUS: CivilStatus;
   SECTOR: Sector;
   DOCUMENT_STATUS: DocumentStatus;
   APPLICATION_STATUS: ApplicationStatus;
@@ -210,6 +212,8 @@ export interface ApplicantRow {
   TOTAL_REQUIRED_DOCS: number;
   BATCH_NAME: string;
   DATE_REGISTERED: string;
+  APPROVED_BY: string;
+  DATE_APPROVED: string;
   // doc checkboxes for inline editing
   DOC_RESUME: boolean;
   DOC_BIRTH_CERTIFICATE: boolean;

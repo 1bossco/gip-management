@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useState }        from "react";
-import { useForm }                     from "react-hook-form";
+import { useForm, type Resolver }      from "react-hook-form";
+import { z }                           from "zod";
 import { zodResolver }                 from "@hookform/resolvers/zod";
 import { TransmittalFilterSchema }     from "@/lib/validators";
 import type { TransmittalFilters }     from "@/types";
@@ -9,13 +10,7 @@ import { getBatches, isApiSuccess }    from "@/lib/api";
 import { SECTORS, MUNICIPALITIES }     from "@/lib/constants";
 import { cn }                          from "@/lib/utils";
 
-type FormValues = {
-  batchName:         string;
-  sector:            string;
-  municipality:      string;
-  applicationStatus: string;
-  targetCount?:      number;
-};
+type FormValues = z.output<typeof TransmittalFilterSchema>;
 
 interface TransmittalFormProps {
   onGenerate:  (filters: TransmittalFilters) => void;
@@ -99,7 +94,9 @@ export function TransmittalForm({ onGenerate, isGenerating }: TransmittalFormPro
     register, handleSubmit, watch, setValue,
     formState: { errors },
   } = useForm<FormValues>({
-    resolver: zodResolver(TransmittalFilterSchema),
+    // .default() fields are optional on the schema's input type but required on its
+    // output type, so zodResolver's generic doesn't match the output-shaped FormValues.
+    resolver: zodResolver(TransmittalFilterSchema) as Resolver<FormValues>,
     defaultValues: {
       batchName: "", sector: "ALL", municipality: "ALL",
       applicationStatus: "ALL", targetCount: undefined,
@@ -176,7 +173,7 @@ export function TransmittalForm({ onGenerate, isGenerating }: TransmittalFormPro
         <Field label="Application Status">
           <StyledSelect
             value={watched.applicationStatus ?? "ALL"}
-            onChange={e => setValue("applicationStatus", e.target.value)}
+            onChange={e => setValue("applicationStatus", e.target.value as FormValues["applicationStatus"])}
             options={[
               { value: "ALL",         label: "All Statuses"  },
               { value: "APPROVED",    label: "✓ Approved"    },

@@ -55,6 +55,32 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
+/* ── Mobile keyboard handling ───────────────────────────────── */
+
+/* When a field is scrolled into view, the browser aligns it to the very top of
+   the viewport — directly underneath the sticky progress bar, which then hides
+   it. scroll-margin reserves room so the field lands below the bar, and above
+   the on-screen keyboard. */
+
+input,
+select,
+textarea {
+  scroll-margin-top:    7rem;
+  scroll-margin-bottom: 7rem;
+}
+
+/* iOS Safari auto-zooms into any field whose text is under 16px, which shoves
+   the layout sideways and hides neighbouring fields. 16px is the threshold —
+   do not lower it. Desktop keeps the smaller 14px type. */
+
+@media (max-width: 640px) {
+  input,
+  select,
+  textarea {
+    font-size: 16px;
+  }
+}
+
 /* ── Scrollbar — hide thin scrollbars on nav ────────────────── */
 
 .scrollbar-none::-webkit-scrollbar  { display: none; }

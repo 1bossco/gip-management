@@ -3,7 +3,7 @@
 import { UseFormReturn, useWatch } from "react-hook-form";
 import type { RegisterFormValues } from "@/lib/validators";
 import {
-  Input, Select, Checkbox, SectionHeader, FormGrid, FormSpan
+  Input, Select, Checkbox, SectionHeader, FormGrid, FormSpan, UPPERCASE_INPUT
 } from "@/components/ui";
 import {
   EDUCATIONAL_STATUS_OPTIONS,
@@ -48,6 +48,7 @@ export function EducationSection({ form }: Props) {
           <Input
             label="School Name"
             required
+            className={UPPERCASE_INPUT}
             placeholder="Full name of school or university"
             error={errors.SCHOOL_NAME?.message}
             {...register("SCHOOL_NAME")}
@@ -59,6 +60,7 @@ export function EducationSection({ form }: Props) {
             <Input
               label="Course / Program"
               required={eduStatus === "COLLEGE"}
+              className={UPPERCASE_INPUT}
               placeholder="e.g. BS Agriculture, BS Nursing"
               error={errors.COURSE?.message}
               {...register("COURSE")}

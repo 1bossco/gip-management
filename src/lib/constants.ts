@@ -109,6 +109,127 @@ export const MUNICIPALITIES = [
   "PGB",
 ];
 
+// ── Residence municipalities (address dropdowns) ──────────────
+// The 12 municipalities + city where an applicant can actually live.
+// Excludes PGB, which is a slot-allocation unit, not a place of residence.
+
+export const ADDRESS_MUNICIPALITIES = MUNICIPALITIES.filter((m) => m !== "PGB");
+
+// ── Barangays by municipality ─────────────────────────────────
+// 237 barangays of Bataan, keyed by the MUNICIPALITY values above.
+//
+// ⚠ DRAFTED FROM PSGC NAMES — VERIFY AGAINST THE OFFICIAL DOH/PSA LIST
+// BEFORE GOING LIVE. These names are printed onto transmittal documents,
+// so a misspelled or missing barangay is a real problem. Counts per
+// municipality are noted below and total 237.
+
+export const BARANGAYS_BY_MUNICIPALITY: Record<string, string[]> = {
+  // 9
+  "ABUCAY": [
+    "Bangkal", "Calaylayan (Pob.)", "Capitangan", "Gabon", "Laon (Pob.)",
+    "Mabatang", "Omboy", "Salian", "Wawa (Pob.)",
+  ],
+
+  // 14
+  "BAGAC": [
+    "Atilano L. Ricardo", "Bagumbayan (Pob.)", "Banawang", "Binuangan",
+    "Binukawan", "Ibaba", "Ibis", "Pag-asa (Wawa-Sibacan)", "Parang",
+    "Paysawan", "Quinawan", "San Antonio", "Saysain", "Tabing-Ilog (Pob.)",
+  ],
+
+  // 25
+  "BALANGA CITY": [
+    "Bagumbayan", "Cabog-Cabog", "Camacho", "Cataning", "Central",
+    "Cupang North", "Cupang Proper", "Cupang West", "Dangcol (Bernabe)",
+    "Doña Francisca", "Ibayo", "Lote", "Malabia", "Munting Batangas (Cadre)",
+    "Poblacion", "Pto. Rivas Ibaba", "Pto. Rivas Itaas", "San Jose",
+    "Sibacan", "Talisay", "Tanato", "Tenejero", "Tortugas", "Tuyo",
+    "Bagong Silang",
+  ],
+
+  // 46
+  "DINALUPIHAN": [
+    "Aquino", "Bangal", "Bayan-bayanan", "Bonifacio (Pob.)", "Burgos (Pob.)",
+    "Colo", "Daang Bago", "Dalao", "Del Pilar (Pob.)", "Gen. Luna (Pob.)",
+    "Gomez (Pob.)", "Happy Valley", "Jose C. Payumo, Jr.", "Kataasan",
+    "Layac", "Luacan", "Mabini Ext. (Pob.)", "Mabini Proper (Pob.)",
+    "Magsaysay", "Maligaya", "Naparing", "New San Jose", "Old San Jose",
+    "Padre Dandan (Pob.)", "Pag-asa", "Pagalanggang", "Payangan", "Pentor",
+    "Pinulot", "Pita", "Rizal (Pob.)", "Roosevelt", "Roxas (Pob.)",
+    "Saguing", "San Benito", "San Isidro (Pob.)", "San Pablo (Bulate)",
+    "San Ramon", "San Simon", "Santa Isabel (Tabacan)", "Santo Niño",
+    "Sapang Balas", "Torres Bugauen (Pob.)", "Tubo-tubo", "Tucop",
+    "Zamora (Pob.)",
+  ],
+
+  // 23
+  "HERMOSA": [
+    "A. Rivera (Pob.)", "Almacen", "Bacong", "Balsic", "Bamban",
+    "Burgos-Soliman (Pob.)", "Cataning (Pob.)", "Culis", "Daungan (Pob.)",
+    "Judge Roman Cruz Sr. (Mandama)", "Mabiga", "Mabuco", "Maite",
+    "Mambog - Mandama", "Palihan", "Pandatung", "Pulo", "Saba",
+    "Sacrifice Valley", "San Pedro (Pob.)", "Santo Cristo (Pob.)", "Sumalo",
+    "Tipo",
+  ],
+
+  // 12
+  "LIMAY": [
+    "Alangan", "Duale", "Kitang 2 & Luz", "Kitang I", "Lamao", "Landing",
+    "Poblacion", "Reformista", "San Francisco de Asis", "St. Francis II",
+    "Townsite", "Wawa",
+  ],
+
+  // 18
+  "MARIVELES": [
+    "Alas-asin", "Alion", "Balon-Anito", "Baseco Country (Nassco)",
+    "Batangas II", "Biaan", "Cabcaben", "Camaya", "Ipag", "Lucanin",
+    "Malaya", "Maligaya", "Mt. View", "Poblacion", "San Carlos",
+    "San Isidro", "Sisiman", "Townsite",
+  ],
+
+  // 5
+  "MORONG": [
+    "Binaritan", "Mabayo", "Nagbalayong", "Poblacion", "Sabang",
+  ],
+
+  // 29
+  "ORANI": [
+    "Apollo", "Bagong Paraiso (Pob.)", "Balut (Pob.)", "Bayan (Pob.)",
+    "Calero (Pob.)", "Centro I (Pob.)", "Centro II (Pob.)", "Dona",
+    "Kabalutan", "Kaparangan", "Maria Fe", "Masantol", "Mulawin", "Pag-asa",
+    "Paking-Carbonero (Pob.)", "Palihan (Pob.)", "Pantalan Bago (Pob.)",
+    "Pantalan Luma (Pob.)", "Parang Parang (Pob.)", "Puksuan", "Sibul",
+    "Silahis", "Tagumpay", "Tala", "Talimundoc", "Tapulao",
+    "Tenejero (Pob.)", "Tugatog", "Wawa (Pob.)",
+  ],
+
+  // 23
+  "ORION": [
+    "Arellano (Pob.)", "Bagumbayan (Pob.)", "Balagtas (Pob.)", "Balut (Pob.)",
+    "Bantan", "Bilolo", "Calungusan", "Camachile", "Daang Bago (Pob.)",
+    "Daang Bilolo (Pob.)", "Daang Pare", "General Lim (Kaput)", "Kapunitan",
+    "Lati (Pob.)", "Lusungan (Pob.)", "Puting Buhangin", "Sabatan",
+    "San Vicente (Pob.)", "Santa Elena", "Santo Domingo",
+    "Villa Angeles (Pob.)", "Wakas (Pob.)", "Wawa (Pob.)",
+  ],
+
+  // 19
+  "PILAR": [
+    "Ala-uli", "Bagumbayan", "Balut I", "Balut II", "Bantan Munti", "Burgos",
+    "Del Rosario (Pob.)", "Diwa", "Landing", "Liyang", "Nagwaling",
+    "Panilao", "Pantingan", "Poblacion", "Rizal (Pob.)", "Santa Rosa",
+    "Wakas North", "Wakas South", "Wawa",
+  ],
+
+  // 14
+  "SAMAL": [
+    "East Calaguiman (Pob.)", "East Daang Bago (Pob.)", "Gugo", "Ibaba (Pob.)",
+    "Imelda", "Lalawigan", "Palili", "San Juan (Pob.)", "San Roque (Pob.)",
+    "Santa Lucia", "Sapa", "Tabing Ilog", "West Calaguiman (Pob.)",
+    "West Daang Bago (Pob.)",
+  ],
+};
+
 // Slot allocation units for batch creation (used in CreateBatchModal)
 export const BATCH_MUNICIPALITIES: { key: string; label: string }[] = [
   { key: "ABUCAY",       label: "Abucay"           },
