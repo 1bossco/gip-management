@@ -148,28 +148,15 @@ export function ApplicantTable({
               <ColHeader label="Name"        sortKey="SURNAME"          current={sort} onSort={handleSort} />
               <ColHeader label="Municipality" sortKey="MUNICIPALITY"    current={sort} onSort={handleSort} />
               <ColHeader label="Batch"       sortKey="BATCH_NAME"       current={sort} onSort={handleSort} />
-              {/* Doc checkbox columns — abbreviated */}
-              <th className="px-2 py-2.5 text-center text-[9px] font-black uppercase tracking-widest text-gray-400 border-b border-gray-100 bg-[#f9fafb] whitespace-nowrap">
-                <span title="Resume">Res</span>
-              </th>
-              <th className="px-2 py-2.5 text-center text-[9px] font-black uppercase tracking-widest text-gray-400 border-b border-gray-100 bg-[#f9fafb] whitespace-nowrap">
-                <span title="Birth Certificate">BC</span>
-              </th>
-              <th className="px-2 py-2.5 text-center text-[9px] font-black uppercase tracking-widest text-gray-400 border-b border-gray-100 bg-[#f9fafb] whitespace-nowrap">
-                <span title="School ID">SID</span>
-              </th>
-              <th className="px-2 py-2.5 text-center text-[9px] font-black uppercase tracking-widest text-gray-400 border-b border-gray-100 bg-[#f9fafb] whitespace-nowrap">
-                <span title="Certificate of Enrollment">COE</span>
-              </th>
-              <th className="px-2 py-2.5 text-center text-[9px] font-black uppercase tracking-widest text-gray-400 border-b border-gray-100 bg-[#f9fafb] whitespace-nowrap">
-                <span title="Barangay Certificate">Brgy</span>
-              </th>
-              <th className="px-2 py-2.5 text-center text-[9px] font-black uppercase tracking-widest text-gray-400 border-b border-gray-100 bg-[#f9fafb] whitespace-nowrap">
-                <span title="Parent Consent">Con</span>
-              </th>
-              <th className="px-2 py-2.5 text-center text-[9px] font-black uppercase tracking-widest text-gray-400 border-b border-gray-100 bg-[#f9fafb] whitespace-nowrap">
-                <span title="Medical Certificate">Med</span>
-              </th>
+              {/* Doc checkbox columns — one per required document, in registry order */}
+              {DOCUMENT_FIELDS.map(doc => (
+                <th
+                  key={doc.field}
+                  className="px-2 py-2.5 text-center text-[9px] font-black uppercase tracking-widest text-gray-400 border-b border-gray-100 bg-[#f9fafb] whitespace-nowrap"
+                >
+                  <span title={doc.label}>{doc.shortLabel}</span>
+                </th>
+              ))}
               <ColHeader label="Docs"        sortKey="TOTAL_SUBMITTED_DOCS" current={sort} onSort={handleSort} />
               <ColHeader label="Doc Status"  sortKey="DOCUMENT_STATUS"  current={sort} onSort={handleSort} />
               <ColHeader label="App Status"  sortKey="APPLICATION_STATUS" current={sort} onSort={handleSort} />
@@ -228,8 +215,8 @@ export function ApplicantTable({
                     </td>
 
                     {/* Doc checkboxes — stop propagation so row click doesn't fire */}
-                    {(["DOC_RESUME","DOC_BIRTH_CERTIFICATE","DOC_SCHOOL_ID","DOC_CERTIFICATE_OF_ENROLLMENT","DOC_BARANGAY_CERTIFICATE","DOC_PARENT_CONSENT","DOC_MEDICAL_CERTIFICATE"] as DocumentField[]).map(field => {
-                      const doc = DOCUMENT_FIELDS.find(d => d.field === field)!;
+                    {DOCUMENT_FIELDS.map(doc => {
+                      const field: DocumentField = doc.field;
                       return (
                         <td key={field} className="px-2 py-2.5 text-center" onClick={e => e.stopPropagation()}>
                           <DocumentCheckbox

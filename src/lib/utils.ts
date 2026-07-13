@@ -117,11 +117,11 @@ export function extractDocCheckboxes(applicant: Applicant | ApplicantRow): Docum
   return {
     DOC_RESUME: !!applicant.DOC_RESUME,
     DOC_BIRTH_CERTIFICATE: !!applicant.DOC_BIRTH_CERTIFICATE,
-    DOC_SCHOOL_ID: !!applicant.DOC_SCHOOL_ID,
-    DOC_CERTIFICATE_OF_ENROLLMENT: !!applicant.DOC_CERTIFICATE_OF_ENROLLMENT,
-    DOC_BARANGAY_CERTIFICATE: !!applicant.DOC_BARANGAY_CERTIFICATE,
-    DOC_PARENT_CONSENT: !!applicant.DOC_PARENT_CONSENT,
-    DOC_MEDICAL_CERTIFICATE: !!applicant.DOC_MEDICAL_CERTIFICATE,
+    DOC_VALID_ID: !!applicant.DOC_VALID_ID,
+    DOC_TOR: !!applicant.DOC_TOR,
+    DOC_CERTIFICATE_OF_INDIGENCY: !!applicant.DOC_CERTIFICATE_OF_INDIGENCY,
+    DOC_DIPLOMA: !!applicant.DOC_DIPLOMA,
+    DOC_GIP_FORM: !!applicant.DOC_GIP_FORM,
   };
 }
 

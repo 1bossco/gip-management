@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef }              from "react";
+import { useState }            from "react";
 import { cn, formatDate }      from "@/lib/utils";
 import type { TransmittalData } from "@/types";
 import { StatusBadge }         from "@/components/ui";
@@ -9,11 +9,36 @@ interface TransmittalPreviewProps {
   data: TransmittalData;
 }
 
-// ── Print trigger ─────────────────────────────────────────────
-// Uses a hidden iframe so only the transmittal content prints,
-// not the entire app shell.
+// ── Paper sizes ───────────────────────────────────────────────
+// Dimensions are given explicitly rather than by name (Legal, A4…) because the
+// 8.5x13 "long bond"/folio size Philippine offices use has no CSS keyword.
+// Landscape is produced by swapping the two dimensions — `size: <name> landscape`
+// is unreliable once a custom size is involved.
 
-function printTransmittal(contentId: string) {
+const PAPER_SIZES = [
+  { key: "FOLIO",  label: "8.5 × 13 in (Long/Folio)", width: "8.5in", height: "13in"  },
+  { key: "LETTER", label: "8.5 × 11 in (Letter)",     width: "8.5in", height: "11in"  },
+  { key: "LEGAL",  label: "8.5 × 14 in (Legal)",      width: "8.5in", height: "14in"  },
+  { key: "A4",     label: "A4 (210 × 297 mm)",        width: "210mm", height: "297mm" },
+] as const;
+
+type PaperKey   = (typeof PAPER_SIZES)[number]["key"];
+type Orientation = "portrait" | "landscape";
+
+function pageRule(paper: PaperKey, orientation: Orientation): string {
+  const size = PAPER_SIZES.find(p => p.key === paper) ?? PAPER_SIZES[0];
+  const [w, h] = orientation === "landscape"
+    ? [size.height, size.width]
+    : [size.width, size.height];
+  return `@page { size: ${w} ${h}; margin: 12mm 10mm; }`;
+}
+
+// ── Print trigger ─────────────────────────────────────────────
+// Opens a bare window holding only the transmittal markup, so the app shell
+// (sidebar, buttons) never lands on the page. "Save as PDF" in the print dialog
+// is what produces the PDF download.
+
+function printTransmittal(contentId: string, paper: PaperKey, orientation: Orientation) {
   const el = document.getElementById(contentId);
   if (!el) return;
   const printWindow = window.open("", "_blank", "width=900,height=700");
@@ -64,7 +89,7 @@ function printTransmittal(contentId: string) {
         .sig-title { font-size: 7.5pt; color: #444; }
         /* Footer */
         .doc-footer { margin-top: 16pt; padding-top: 6pt; border-top: 0.5pt solid #ccc; display: flex; justify-content: space-between; font-size: 6.5pt; color: #999; }
-        @page { size: Legal portrait; margin: 12mm 10mm; }
+        ${pageRule(paper, orientation)}
         @media print { body { -webkit-print-color-adjust: exact; print-color-adjust: exact; } }
       </style>
     </head>
@@ -78,10 +103,77 @@ function printTransmittal(contentId: string) {
   setTimeout(() => { printWindow.print(); printWindow.close(); }, 400);
 }
 
+function PrintOption({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <label className="flex flex-col gap-1">
+      <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest">
+        {label}
+      </span>
+      {children}
+    </label>
+  );
+}
+
+// ── Excel export ──────────────────────────────────────────────
+// Header block mirrors the printed document so the spreadsheet is recognisable
+// as the same transmittal, then the applicant rows as a plain table.
+
+// SheetJS is ~90KB — loaded on click rather than with the page, so opening the
+// transmittal doesn't pay for a library most viewings never use.
+async function exportToExcel(data: TransmittalData) {
+  const XLSX = await import("xlsx");
+
+  const header = [
+    ["GOVERNMENT INTERNSHIP PROGRAM — TRANSMITTAL"],
+    [],
+    ["Transmittal No.", data.transmittalId],
+    ["Date Generated",  formatDate(data.dateGenerated)],
+    ["Batch",           data.batchName    || "All"],
+    ["Sector",          data.sector       || "All"],
+    ["Municipality",    data.municipality || "All"],
+    ["Total Applicants", data.totalIncluded],
+    [],
+  ];
+
+  const columns = [
+    "No.", "GIP ID", "Name", "Sex", "Municipality", "Barangay",
+    "Contact Number", "Sector", "Document Status", "Application Status",
+  ];
+
+  const rows = data.entries.map((e, i) => [
+    i + 1,
+    e.GIP_ID,
+    e.fullName,
+    e.SEX,
+    e.MUNICIPALITY,
+    e.BARANGAY,
+    e.CONTACT_NUMBER,
+    e.SECTOR,
+    e.DOCUMENT_STATUS,
+    e.APPLICATION_STATUS,
+  ]);
+
+  const sheet = XLSX.utils.aoa_to_sheet([...header, columns, ...rows]);
+
+  // Excel defaults every column to the same narrow width, which truncates names
+  // and addresses on open. Size them to the content instead.
+  sheet["!cols"] = [
+    { wch: 5 }, { wch: 16 }, { wch: 32 }, { wch: 6 }, { wch: 16 },
+    { wch: 22 }, { wch: 16 }, { wch: 16 }, { wch: 16 }, { wch: 18 },
+  ];
+
+  const book = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(book, sheet, "Transmittal");
+  XLSX.writeFile(book, `GIP-Transmittal-${data.transmittalId}.xlsx`);
+}
+
 // ── TransmittalPreview ────────────────────────────────────────
 
 export function TransmittalPreview({ data }: TransmittalPreviewProps) {
   const contentId = `transmittal-${data.transmittalId}`;
+
+  const [paper, setPaper]             = useState<PaperKey>("FOLIO");
+  const [orientation, setOrientation] = useState<Orientation>("portrait");
 
   const approvedCount    = data.entries.filter(e => e.APPLICATION_STATUS === "APPROVED").length;
   const pendingCount     = data.entries.filter(e => e.APPLICATION_STATUS === "PENDING").length;
@@ -91,7 +183,9 @@ export function TransmittalPreview({ data }: TransmittalPreviewProps) {
     <div className="space-y-4">
 
       {/* ── Action bar ───────────────────────────────── */}
-      <div className="flex items-center justify-between bg-white rounded-2xl border border-gray-100 shadow-sm px-5 py-3">
+      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm px-5 py-3
+        flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+
         <div>
           <p className="text-xs font-black text-[#1a1a2e]">
             Transmittal #{data.transmittalId}
@@ -101,14 +195,49 @@ export function TransmittalPreview({ data }: TransmittalPreviewProps) {
             Generated {formatDate(data.dateGenerated)}
           </p>
         </div>
-        <div className="flex items-center gap-2">
+
+        <div className="flex flex-wrap items-end gap-2">
+          <PrintOption label="Paper Size">
+            <select
+              value={paper}
+              onChange={e => setPaper(e.target.value as PaperKey)}
+              className="w-full rounded-lg border border-gray-200 bg-white px-2.5 py-2 text-xs
+                font-semibold text-[#1a1a2e] focus:outline-none focus:ring-2 focus:ring-[#0f3460]/30"
+            >
+              {PAPER_SIZES.map(p => (
+                <option key={p.key} value={p.key}>{p.label}</option>
+              ))}
+            </select>
+          </PrintOption>
+
+          <PrintOption label="Orientation">
+            <select
+              value={orientation}
+              onChange={e => setOrientation(e.target.value as Orientation)}
+              className="w-full rounded-lg border border-gray-200 bg-white px-2.5 py-2 text-xs
+                font-semibold text-[#1a1a2e] focus:outline-none focus:ring-2 focus:ring-[#0f3460]/30"
+            >
+              <option value="portrait">Portrait</option>
+              <option value="landscape">Landscape</option>
+            </select>
+          </PrintOption>
+
           <button
-            onClick={() => printTransmittal(contentId)}
+            onClick={() => exportToExcel(data)}
+            className="flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white text-xs font-bold
+              rounded-xl hover:bg-emerald-700 transition-colors shadow-md shadow-emerald-600/20
+              active:scale-[0.98]"
+          >
+            📊 Download Excel
+          </button>
+
+          <button
+            onClick={() => printTransmittal(contentId, paper, orientation)}
             className="flex items-center gap-2 px-4 py-2 bg-[#0f3460] text-white text-xs font-bold
               rounded-xl hover:bg-[#16213e] transition-colors shadow-md shadow-[#0f3460]/20
               active:scale-[0.98]"
           >
-            🖨️ Print / Download PDF
+            🖨️ Print / Save as PDF
           </button>
         </div>
       </div>

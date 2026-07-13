@@ -212,15 +212,15 @@ export const DocumentSchema = z.object({
 
   DOC_BIRTH_CERTIFICATE: z.boolean().default(false),
 
-  DOC_SCHOOL_ID: z.boolean().default(false),
+  DOC_VALID_ID: z.boolean().default(false),
 
-  DOC_CERTIFICATE_OF_ENROLLMENT: z.boolean().default(false),
+  DOC_TOR: z.boolean().default(false),
 
-  DOC_BARANGAY_CERTIFICATE: z.boolean().default(false),
+  DOC_CERTIFICATE_OF_INDIGENCY: z.boolean().default(false),
 
-  DOC_PARENT_CONSENT: z.boolean().default(false),
+  DOC_DIPLOMA: z.boolean().default(false),
 
-  DOC_MEDICAL_CERTIFICATE: z.boolean().default(false),
+  DOC_GIP_FORM: z.boolean().default(false),
 });
 
 // ── Authorization ─────────────────────────────────────────────
@@ -294,11 +294,11 @@ export const DocumentUpdateSchema = z.object({
   field: z.enum([
     "DOC_RESUME",
     "DOC_BIRTH_CERTIFICATE",
-    "DOC_SCHOOL_ID",
-    "DOC_CERTIFICATE_OF_ENROLLMENT",
-    "DOC_BARANGAY_CERTIFICATE",
-    "DOC_PARENT_CONSENT",
-    "DOC_MEDICAL_CERTIFICATE",
+    "DOC_VALID_ID",
+    "DOC_TOR",
+    "DOC_CERTIFICATE_OF_INDIGENCY",
+    "DOC_DIPLOMA",
+    "DOC_GIP_FORM",
   ]),
 
   value: z.boolean(),

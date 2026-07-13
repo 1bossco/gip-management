@@ -3,7 +3,7 @@
 import { UseFormReturn, useWatch } from "react-hook-form";
 import type { RegisterFormValues } from "@/lib/validators";
 import { Checkbox, SectionHeader } from "@/components/ui";
-import { DOCUMENT_FIELDS } from "@/lib/constants";
+import { DOCUMENT_FIELDS, DOCUMENT_FIELD_NAMES } from "@/lib/constants";
 import { cn } from "@/lib/utils";
 
 interface Props {
@@ -13,19 +13,9 @@ interface Props {
 export function DocumentsSection({ form }: Props) {
   const { setValue, control, formState: { errors } } = form;
 
-  // Watch all doc fields to compute live count
-  const docValues = useWatch({
-    control,
-    name: [
-      "DOC_RESUME",
-      "DOC_BIRTH_CERTIFICATE",
-      "DOC_SCHOOL_ID",
-      "DOC_CERTIFICATE_OF_ENROLLMENT",
-      "DOC_BARANGAY_CERTIFICATE",
-      "DOC_PARENT_CONSENT",
-      "DOC_MEDICAL_CERTIFICATE",
-    ],
-  });
+  // Derived from the registry so adding or removing a required document in
+  // DOCUMENT_FIELDS is picked up here without editing a second list.
+  const docValues = useWatch({ control, name: DOCUMENT_FIELD_NAMES });
 
   const authAgreed = useWatch({ control, name: "AUTHORIZATION_AGREEMENT" });
 

@@ -13,13 +13,13 @@ export const DOCUMENT_FIELDS: {
   shortLabel: string;
   required: boolean;
 }[] = [
-  { field: "DOC_RESUME",                    label: "Resume / Application Form",         shortLabel: "Resume",    required: true },
-  { field: "DOC_BIRTH_CERTIFICATE",         label: "PSA Birth Certificate",             shortLabel: "Birth Cert", required: true },
-  { field: "DOC_SCHOOL_ID",                 label: "School ID",                         shortLabel: "School ID", required: true },
-  { field: "DOC_CERTIFICATE_OF_ENROLLMENT", label: "Certificate of Enrollment",         shortLabel: "COE",       required: true },
-  { field: "DOC_BARANGAY_CERTIFICATE",      label: "Barangay Certificate of Indigency", shortLabel: "Brgy Cert", required: true },
-  { field: "DOC_PARENT_CONSENT",            label: "Parent / Guardian Consent",         shortLabel: "Consent",   required: true },
-  { field: "DOC_MEDICAL_CERTIFICATE",       label: "Medical Certificate",               shortLabel: "Medical",   required: true },
+  { field: "DOC_RESUME",                   label: "Resume",                   shortLabel: "Resume",     required: true },
+  { field: "DOC_BIRTH_CERTIFICATE",        label: "PSA Birth Certificate",    shortLabel: "PSA Birth",  required: true },
+  { field: "DOC_VALID_ID",                 label: "Valid ID",                 shortLabel: "Valid ID",   required: true },
+  { field: "DOC_CERTIFICATE_OF_INDIGENCY", label: "Certificate of Indigency", shortLabel: "Indigency",  required: true },
+  { field: "DOC_TOR",                      label: "Transcript of Records",    shortLabel: "TOR",        required: true },
+  { field: "DOC_DIPLOMA",                  label: "Diploma",                  shortLabel: "Diploma",    required: true },
+  { field: "DOC_GIP_FORM",                 label: "GIP Form",                 shortLabel: "GIP Form",   required: true },
 ];
 
 export const TOTAL_REQUIRED_DOCS  = DOCUMENT_FIELDS.filter(d => d.required).length;

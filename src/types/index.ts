@@ -35,11 +35,11 @@ export type BatchStatus = "OPEN" | "CLOSED" | "CANCELLED";
 export interface DocumentCheckboxes {
   DOC_RESUME: boolean;
   DOC_BIRTH_CERTIFICATE: boolean;
-  DOC_SCHOOL_ID: boolean;
-  DOC_CERTIFICATE_OF_ENROLLMENT: boolean;
-  DOC_BARANGAY_CERTIFICATE: boolean;
-  DOC_PARENT_CONSENT: boolean;
-  DOC_MEDICAL_CERTIFICATE: boolean;
+  DOC_VALID_ID: boolean;
+  DOC_TOR: boolean;
+  DOC_CERTIFICATE_OF_INDIGENCY: boolean;
+  DOC_DIPLOMA: boolean;
+  DOC_GIP_FORM: boolean;
 }
 
 export type DocumentField = keyof DocumentCheckboxes;
@@ -108,11 +108,11 @@ export interface Applicant {
   // DOCUMENTS (checkboxes)
   DOC_RESUME: boolean;
   DOC_BIRTH_CERTIFICATE: boolean;
-  DOC_SCHOOL_ID: boolean;
-  DOC_CERTIFICATE_OF_ENROLLMENT: boolean;
-  DOC_BARANGAY_CERTIFICATE: boolean;
-  DOC_PARENT_CONSENT: boolean;
-  DOC_MEDICAL_CERTIFICATE: boolean;
+  DOC_VALID_ID: boolean;
+  DOC_TOR: boolean;
+  DOC_CERTIFICATE_OF_INDIGENCY: boolean;
+  DOC_DIPLOMA: boolean;
+  DOC_GIP_FORM: boolean;
 
   // TRACKING
   TOTAL_REQUIRED_DOCS: number;
@@ -217,11 +217,11 @@ export interface ApplicantRow {
   // doc checkboxes for inline editing
   DOC_RESUME: boolean;
   DOC_BIRTH_CERTIFICATE: boolean;
-  DOC_SCHOOL_ID: boolean;
-  DOC_CERTIFICATE_OF_ENROLLMENT: boolean;
-  DOC_BARANGAY_CERTIFICATE: boolean;
-  DOC_PARENT_CONSENT: boolean;
-  DOC_MEDICAL_CERTIFICATE: boolean;
+  DOC_VALID_ID: boolean;
+  DOC_TOR: boolean;
+  DOC_CERTIFICATE_OF_INDIGENCY: boolean;
+  DOC_DIPLOMA: boolean;
+  DOC_GIP_FORM: boolean;
 }
 
 // ── Monitoring Filters ────────────────────────────────────────

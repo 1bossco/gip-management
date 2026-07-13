@@ -57,11 +57,11 @@ export default function RegisterPage() {
       GRADUATING_NEXT_YEAR: false,
       DOC_RESUME: false,
       DOC_BIRTH_CERTIFICATE: false,
-      DOC_SCHOOL_ID: false,
-      DOC_CERTIFICATE_OF_ENROLLMENT: false,
-      DOC_BARANGAY_CERTIFICATE: false,
-      DOC_PARENT_CONSENT: false,
-      DOC_MEDICAL_CERTIFICATE: false,
+      DOC_VALID_ID: false,
+      DOC_TOR: false,
+      DOC_CERTIFICATE_OF_INDIGENCY: false,
+      DOC_DIPLOMA: false,
+      DOC_GIP_FORM: false,
     },
   });
 
