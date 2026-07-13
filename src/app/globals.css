@@ -1,0 +1,204 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ── CSS Variables ──────────────────────────────────────────── */
+
+:root {
+  /* Brand */
+  --color-navy:        #0f3460;
+  --color-navy-dark:   #16213e;
+  --color-navy-light:  #1a4a8a;
+  --color-accent:      #e94560;
+
+  /* Surface */
+  --color-bg:          #f7f8fc;
+  --color-surface:     #ffffff;
+  --color-border:      #e8ecf4;
+
+  /* Text */
+  --color-text:        #1a1a2e;
+  --color-text-muted:  #6b7280;
+  --color-text-faint:  #9ca3af;
+
+  /* Status */
+  --color-complete:    #10b981;
+  --color-incomplete:  #f59e0b;
+  --color-approved:    #10b981;
+  --color-disapproved: #ef4444;
+  --color-pending:     #0ea5e9;
+
+  /* Fonts */
+  --font-body:         var(--font-body, 'DM Sans', sans-serif);
+  --font-display:      var(--font-display, 'Noto Serif', serif);
+  --font-mono:         'DM Mono', 'Fira Code', monospace;
+}
+
+/* ── Base ───────────────────────────────────────────────────── */
+
+* {
+  box-sizing:  border-box;
+  margin:      0;
+  padding:     0;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family:      var(--font-body);
+  background-color: var(--color-bg);
+  color:            var(--color-text);
+  line-height:      1.5;
+  -webkit-font-smoothing:  antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ── Scrollbar — hide thin scrollbars on nav ────────────────── */
+
+.scrollbar-none::-webkit-scrollbar  { display: none; }
+.scrollbar-none                     { -ms-overflow-style: none; scrollbar-width: none; }
+
+/* Thin scrollbar for content areas */
+.scrollbar-thin::-webkit-scrollbar       { width: 4px; height: 4px; }
+.scrollbar-thin::-webkit-scrollbar-track { background: transparent; }
+.scrollbar-thin::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 99px; }
+
+/* ── Focus ring ─────────────────────────────────────────────── */
+
+:focus-visible {
+  outline:        2px solid var(--color-navy);
+  outline-offset: 2px;
+  border-radius:  4px;
+}
+
+/* ── Selection ──────────────────────────────────────────────── */
+
+::selection {
+  background: #0f346020;
+  color:      var(--color-text);
+}
+
+/* ── Typography helpers ─────────────────────────────────────── */
+
+.font-display {
+  font-family: var(--font-display);
+}
+
+.font-mono {
+  font-family: var(--font-mono);
+}
+
+/* Stat numbers use display serif for authority */
+.stat-number {
+  font-family: var(--font-display);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+}
+
+/* ── Animation utilities ────────────────────────────────────── */
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slideRight {
+  from { opacity: 0; transform: translateX(-8px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes pulse-soft {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.6; }
+}
+
+.animate-fade-in     { animation: fadeIn    0.2s ease-out both; }
+.animate-slide-up    { animation: slideUp   0.25s ease-out both; }
+.animate-slide-right { animation: slideRight 0.25s ease-out both; }
+.animate-pulse-soft  { animation: pulse-soft 2s ease-in-out infinite; }
+
+/* Staggered children */
+.stagger > *:nth-child(1) { animation-delay: 0ms; }
+.stagger > *:nth-child(2) { animation-delay: 60ms; }
+.stagger > *:nth-child(3) { animation-delay: 120ms; }
+.stagger > *:nth-child(4) { animation-delay: 180ms; }
+.stagger > *:nth-child(5) { animation-delay: 240ms; }
+.stagger > *:nth-child(6) { animation-delay: 300ms; }
+
+/* ── Card styles ────────────────────────────────────────────── */
+
+.card {
+  background:    var(--color-surface);
+  border:        1px solid var(--color-border);
+  border-radius: 12px;
+  box-shadow:    0 1px 3px rgba(0,0,0,0.04), 0 1px 2px rgba(0,0,0,0.03);
+}
+
+/* ── Table ──────────────────────────────────────────────────── */
+
+.gip-table th {
+  font-size:        10px;
+  font-weight:      700;
+  letter-spacing:   0.08em;
+  text-transform:   uppercase;
+  color:            var(--color-text-muted);
+  padding:          10px 12px;
+  background:       #f9fafb;
+  border-bottom:    1px solid var(--color-border);
+  white-space:      nowrap;
+}
+
+.gip-table td {
+  font-size:    13px;
+  padding:      10px 12px;
+  border-bottom: 1px solid #f3f4f6;
+  color:        var(--color-text);
+}
+
+.gip-table tr:last-child td {
+  border-bottom: none;
+}
+
+.gip-table tr:hover td {
+  background: #f9fafb;
+}
+
+/* ── Status dots ────────────────────────────────────────────── */
+
+.status-dot {
+  display:       inline-block;
+  width:         7px;
+  height:        7px;
+  border-radius: 50%;
+  flex-shrink:   0;
+}
+
+.status-dot.complete    { background: var(--color-complete); }
+.status-dot.incomplete  { background: var(--color-incomplete); }
+.status-dot.approved    { background: var(--color-approved); }
+.status-dot.disapproved { background: var(--color-disapproved); }
+.status-dot.pending     { background: var(--color-pending); }
+
+/* ── Print styles ───────────────────────────────────────────── */
+
+@media print {
+  /* Hide navigation completely */
+  aside, header, .no-print, .topbar { display: none !important; }
+
+  body { background: white !important; font-size: 11pt; }
+
+  .print-break-before { page-break-before: always; }
+  .print-break-after  { page-break-after:  always; }
+  .print-avoid-break  { page-break-inside: avoid; }
+
+  /* Tables: repeat header on each page */
+  thead { display: table-header-group; }
+  tfoot { display: table-footer-group; }
+}
