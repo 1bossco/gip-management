@@ -272,6 +272,7 @@ export interface Batch {
   BATCH_NAME: string;
   BATCH_DATE: string;
   SECTOR: Sector | "ALL";
+  MUNICIPALITY: string;
   TARGET_SLOTS: number;
   TOTAL_APPLICANTS: number;
   STATUS: BatchStatus;
