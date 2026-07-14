@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { cn, formatDate }      from "@/lib/utils";
+import { OFFICE_NAME, OFFICE_SHORT } from "@/lib/constants";
 import type { TransmittalData } from "@/types";
 
 interface TransmittalPreviewProps {
@@ -127,9 +128,9 @@ interface Signatories {
 
 const DEFAULT_SIGNATORIES: Signatories = {
   preparedName:     "",
-  preparedPosition: "PESO Staff / Encoder",
+  preparedPosition: `${OFFICE_SHORT} Staff / Encoder`,
   approvedName:     "",
-  approvedPosition: "PESO Manager / Governor",
+  approvedPosition: `${OFFICE_SHORT} Manager / Governor`,
 };
 
 // The same two people sign most transmittals, so remember them rather than making
@@ -140,7 +141,18 @@ function loadSignatories(): Signatories {
   if (typeof window === "undefined") return DEFAULT_SIGNATORIES;
   try {
     const saved = window.localStorage.getItem(SIGNATORY_STORAGE_KEY);
-    return saved ? { ...DEFAULT_SIGNATORIES, ...JSON.parse(saved) } : DEFAULT_SIGNATORIES;
+    if (!saved) return DEFAULT_SIGNATORIES;
+
+    const stored: Signatories = { ...DEFAULT_SIGNATORIES, ...JSON.parse(saved) };
+
+    // The office was renamed from PESO to OPPESM. Positions saved before the
+    // rename would otherwise keep printing the old name on every transmittal,
+    // since a stored value always beats the default.
+    return {
+      ...stored,
+      preparedPosition: stored.preparedPosition.replace(/\bPESO\b/g, OFFICE_SHORT),
+      approvedPosition: stored.approvedPosition.replace(/\bPESO\b/g, OFFICE_SHORT),
+    };
   } catch {
     return DEFAULT_SIGNATORIES;
   }
@@ -458,15 +470,12 @@ export function TransmittalPreview({ data }: TransmittalPreviewProps) {
               <p className="text-[9px] font-semibold tracking-[0.18em] uppercase text-gray-500 mb-1">
                 Republic of the Philippines
               </p>
-              <p className="text-[10px] font-semibold tracking-widest uppercase text-gray-500">
-                Province of {process.env.NEXT_PUBLIC_PROVINCE?.replace("Province of ", "") ?? "Bataan"}
-              </p>
               <p className="text-lg font-black uppercase tracking-widest text-[#0f3460] my-1"
                 style={{ fontFamily: "var(--font-display, serif)" }}>
                 {process.env.NEXT_PUBLIC_PROVINCE ?? "Province of Bataan"}
               </p>
               <p className="text-[10px] tracking-widest uppercase text-gray-500">
-                Provincial Employment Service Office (PESO)
+                {OFFICE_NAME}
               </p>
 
               {/* Decorative rule */}

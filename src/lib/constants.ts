@@ -25,6 +25,13 @@ export const DOCUMENT_FIELDS: {
 export const TOTAL_REQUIRED_DOCS  = DOCUMENT_FIELDS.filter(d => d.required).length;
 export const DOCUMENT_FIELD_NAMES = DOCUMENT_FIELDS.map(d => d.field);
 
+// ── Office ────────────────────────────────────────────────────
+// The issuing office, printed on the transmittal and referenced by the app.
+// Defined once here so the name cannot drift between pages.
+
+export const OFFICE_NAME  = "Office of the Provincial Public Service Manager - OPPESM";
+export const OFFICE_SHORT = "OPPESM";
+
 // ── Status Colors ─────────────────────────────────────────────
 
 export const STATUS_COLORS = {

@@ -3,7 +3,7 @@
 import { useSearchParams, useRouter } from "next/navigation";
 import { Suspense } from "react";
 import { Button, StatusBadge } from "@/components/ui";
-import { DOCUMENT_FIELDS } from "@/lib/constants";
+import { DOCUMENT_FIELDS, OFFICE_SHORT } from "@/lib/constants";
 import { cn } from "@/lib/utils";
 
 function SuccessContent() {
@@ -121,7 +121,7 @@ function SuccessContent() {
                   ))}
                 </ul>
                 <p className="text-xs text-amber-600 mt-2 pt-2 border-t border-amber-200">
-                  Please bring these documents to the PESO office to complete your application.
+                  Please bring these documents to the {OFFICE_SHORT} office to complete your application.
                 </p>
               </div>
             )}
@@ -149,7 +149,7 @@ function SuccessContent() {
 
         {/* Footer note */}
         <p className="text-center text-blue-300/60 text-xs mt-6 px-4">
-          For inquiries, contact the PESO office with your GIP ID: <strong className="text-blue-200">{gipId}</strong>
+          For inquiries, contact the {OFFICE_SHORT} office with your GIP ID: <strong className="text-blue-200">{gipId}</strong>
         </p>
 
       </div>
