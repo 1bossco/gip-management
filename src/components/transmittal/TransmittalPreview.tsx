@@ -1,9 +1,8 @@
 "use client";
 
-import { useState }            from "react";
+import { useState, useEffect } from "react";
 import { cn, formatDate }      from "@/lib/utils";
 import type { TransmittalData } from "@/types";
-import { StatusBadge }         from "@/components/ui";
 
 interface TransmittalPreviewProps {
   data: TransmittalData;
@@ -80,13 +79,27 @@ function printTransmittal(contentId: string, paper: PaperKey, orientation: Orien
         .sum-item { display: flex; flex-direction: column; align-items: center; }
         .sum-value { font-family: 'Noto Serif', serif; font-size: 16pt; font-weight: 700; color: #0f3460; }
         .sum-label { font-size: 6.5pt; text-transform: uppercase; letter-spacing: 0.1em; color: #666; margin-top: 1pt; }
-        /* Signature */
-        .sig-section { margin-top: 20pt; }
-        .sig-row { display: flex; justify-content: space-between; gap: 24pt; margin-top: 16pt; }
-        .sig-block { flex: 1; text-align: center; }
-        .sig-line { border-top: 1pt solid #000; margin-top: 24pt; padding-top: 3pt; }
-        .sig-name { font-weight: 800; font-size: 9pt; text-transform: uppercase; letter-spacing: 0.05em; }
-        .sig-title { font-size: 7.5pt; color: #444; }
+        /* Signature — the print window has no Tailwind, so the side-by-side layout
+           must come from these rules. Without them the two blocks are plain divs
+           and stack vertically, putting one signatory under the other.
+           nowrap keeps them on one line even on a narrow page; the fixed 50% basis
+           keeps the two lines equal width regardless of name length. */
+        .sig-grid {
+          display: flex !important;
+          flex-direction: row !important;
+          flex-wrap: nowrap !important;
+          gap: 36pt;
+          margin-top: 12pt;
+          page-break-inside: avoid;
+          break-inside: avoid;
+        }
+        .sig-col { flex: 1 1 50%; min-width: 0; text-align: center; }
+        .sig-label { font-size: 7.5pt; font-weight: 700; text-transform: uppercase; letter-spacing: 0.12em; color: #555; }
+        .sig-space { height: 34pt; }
+        .sig-line { border-top: 1pt solid #000; padding-top: 3pt; }
+        .sig-name { font-weight: 800; font-size: 9pt; text-transform: uppercase; letter-spacing: 0.05em; color: #000; }
+        .sig-title { font-size: 7.5pt; color: #444; margin-top: 1pt; }
+        .sig-date { font-size: 7pt; color: #666; margin-top: 2pt; }
         /* Footer */
         .doc-footer { margin-top: 16pt; padding-top: 6pt; border-top: 0.5pt solid #ccc; display: flex; justify-content: space-between; font-size: 6.5pt; color: #999; }
         ${pageRule(paper, orientation)}
@@ -101,6 +114,85 @@ function printTransmittal(contentId: string, paper: PaperKey, orientation: Orien
   printWindow.document.close();
   printWindow.focus();
   setTimeout(() => { printWindow.print(); printWindow.close(); }, 400);
+}
+
+// ── Signatories ───────────────────────────────────────────────
+
+interface Signatories {
+  preparedName:     string;
+  preparedPosition: string;
+  approvedName:     string;
+  approvedPosition: string;
+}
+
+const DEFAULT_SIGNATORIES: Signatories = {
+  preparedName:     "",
+  preparedPosition: "PESO Staff / Encoder",
+  approvedName:     "",
+  approvedPosition: "PESO Manager / Governor",
+};
+
+// The same two people sign most transmittals, so remember them rather than making
+// the encoder retype the names for every document.
+const SIGNATORY_STORAGE_KEY = "gip_transmittal_signatories";
+
+function loadSignatories(): Signatories {
+  if (typeof window === "undefined") return DEFAULT_SIGNATORIES;
+  try {
+    const saved = window.localStorage.getItem(SIGNATORY_STORAGE_KEY);
+    return saved ? { ...DEFAULT_SIGNATORIES, ...JSON.parse(saved) } : DEFAULT_SIGNATORIES;
+  } catch {
+    return DEFAULT_SIGNATORIES;
+  }
+}
+
+// One signature column. Both the sig-* classes (print) and Tailwind (screen) are
+// needed — see the note at the call site.
+function SignatureBlock({
+  label, name, position,
+}: { label: string; name: string; position: string }) {
+  return (
+    <div className="sig-col flex-1 basis-1/2 min-w-0 text-center">
+      <p className="sig-label text-[9px] font-bold uppercase tracking-widest text-gray-500">
+        {label}
+      </p>
+
+      {/* Blank space to sign in */}
+      <div className="sig-space h-12" />
+
+      <div className="sig-line border-t border-[#1a1a2e] pt-1.5">
+        <p className="sig-name text-xs font-black uppercase tracking-wider text-[#1a1a2e] break-words">
+          {name.trim() || "____________________________"}
+        </p>
+        <p className="sig-title text-[10px] text-gray-500 mt-1">{position}</p>
+        <p className="sig-date text-[9px] text-gray-400 mt-0.5">Date: ________________</p>
+      </div>
+    </div>
+  );
+}
+
+function SignatoryField({
+  placeholder, value, onChange, uppercase,
+}: {
+  placeholder: string;
+  value: string;
+  onChange: (value: string) => void;
+  uppercase?: boolean;
+}) {
+  return (
+    <input
+      type="text"
+      value={value}
+      placeholder={placeholder}
+      onChange={e => onChange(e.target.value)}
+      className={cn(
+        "w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-[#1a1a2e]",
+        "placeholder:text-gray-400 placeholder:normal-case",
+        "focus:outline-none focus:ring-2 focus:ring-[#0f3460]/30 focus:border-[#0f3460]",
+        uppercase && "uppercase font-semibold"
+      )}
+    />
+  );
 }
 
 function PrintOption({ label, children }: { label: string; children: React.ReactNode }) {
@@ -120,7 +212,7 @@ function PrintOption({ label, children }: { label: string; children: React.React
 
 // SheetJS is ~90KB — loaded on click rather than with the page, so opening the
 // transmittal doesn't pay for a library most viewings never use.
-async function exportToExcel(data: TransmittalData) {
+async function exportToExcel(data: TransmittalData, signatories: Signatories) {
   const XLSX = await import("xlsx");
 
   const header = [
@@ -153,7 +245,18 @@ async function exportToExcel(data: TransmittalData) {
     e.APPLICATION_STATUS,
   ]);
 
-  const sheet = XLSX.utils.aoa_to_sheet([...header, columns, ...rows]);
+  // Mirror the printed signature blocks so the spreadsheet is a faithful copy.
+  const blank = "____________________________";
+  const footer = [
+    [],
+    ["PREPARED BY:", "", "", "", "APPROVED BY:"],
+    [signatories.preparedName.trim() || blank, "", "", "",
+     signatories.approvedName.trim() || blank],
+    [signatories.preparedPosition, "", "", "", signatories.approvedPosition],
+    ["Date: ________________", "", "", "", "Date: ________________"],
+  ];
+
+  const sheet = XLSX.utils.aoa_to_sheet([...header, columns, ...rows, ...footer]);
 
   // Excel defaults every column to the same narrow width, which truncates names
   // and addresses on open. Size them to the content instead.
@@ -174,6 +277,26 @@ export function TransmittalPreview({ data }: TransmittalPreviewProps) {
 
   const [paper, setPaper]             = useState<PaperKey>("FOLIO");
   const [orientation, setOrientation] = useState<Orientation>("portrait");
+
+  // Read from localStorage in an effect, not in useState — the server renders
+  // this page and has no localStorage, so seeding state from it would hydrate
+  // mismatched markup.
+  const [signatories, setSignatories] = useState<Signatories>(DEFAULT_SIGNATORIES);
+
+  useEffect(() => { setSignatories(loadSignatories()); }, []);
+
+  const updateSignatory = (key: keyof Signatories, value: string) => {
+    setSignatories(prev => {
+      const next = { ...prev, [key]: value };
+      try {
+        window.localStorage.setItem(SIGNATORY_STORAGE_KEY, JSON.stringify(next));
+      } catch {
+        // Private browsing / storage full — the document still prints correctly,
+        // the names just won't be remembered next time.
+      }
+      return next;
+    });
+  };
 
   const approvedCount    = data.entries.filter(e => e.APPLICATION_STATUS === "APPROVED").length;
   const pendingCount     = data.entries.filter(e => e.APPLICATION_STATUS === "PENDING").length;
@@ -223,7 +346,7 @@ export function TransmittalPreview({ data }: TransmittalPreviewProps) {
           </PrintOption>
 
           <button
-            onClick={() => exportToExcel(data)}
+            onClick={() => exportToExcel(data, signatories)}
             className="flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white text-xs font-bold
               rounded-xl hover:bg-emerald-700 transition-colors shadow-md shadow-emerald-600/20
               active:scale-[0.98]"
@@ -240,6 +363,56 @@ export function TransmittalPreview({ data }: TransmittalPreviewProps) {
             🖨️ Print / Save as PDF
           </button>
         </div>
+      </div>
+
+      {/* ── Signatories ──────────────────────────────────
+          Sits outside the printable div, so these inputs never appear on the
+          document — only the values they produce do. */}
+      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm px-5 py-4">
+        <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3">
+          Signatories
+        </p>
+
+        <div className="grid gap-4 sm:grid-cols-2">
+          <div className="space-y-2">
+            <p className="text-[10px] font-bold text-[#0f3460] uppercase tracking-wider">
+              Prepared by
+            </p>
+            <SignatoryField
+              placeholder="Full name"
+              value={signatories.preparedName}
+              onChange={v => updateSignatory("preparedName", v)}
+              uppercase
+            />
+            <SignatoryField
+              placeholder="Position"
+              value={signatories.preparedPosition}
+              onChange={v => updateSignatory("preparedPosition", v)}
+            />
+          </div>
+
+          <div className="space-y-2">
+            <p className="text-[10px] font-bold text-[#0f3460] uppercase tracking-wider">
+              Approved by
+            </p>
+            <SignatoryField
+              placeholder="Full name"
+              value={signatories.approvedName}
+              onChange={v => updateSignatory("approvedName", v)}
+              uppercase
+            />
+            <SignatoryField
+              placeholder="Position"
+              value={signatories.approvedPosition}
+              onChange={v => updateSignatory("approvedPosition", v)}
+            />
+          </div>
+        </div>
+
+        <p className="text-[10px] text-gray-400 mt-3">
+          Saved on this device and reused for the next transmittal. Leave the name
+          blank to print a ruled line to sign over.
+        </p>
       </div>
 
       {/* ── Summary pills ────────────────────────────── */}
@@ -456,36 +629,20 @@ export function TransmittalPreview({ data }: TransmittalPreviewProps) {
               </p>
             </div>
 
-            {/* ── Signature blocks ───────────────────── */}
-            <div className="grid grid-cols-2 gap-16 mt-4">
-
-              {/* Prepared by */}
-              <div className="text-center">
-                <p className="text-[9px] font-bold uppercase tracking-widest text-gray-500 mb-8">
-                  Prepared by:
-                </p>
-                <div className="border-t border-[#1a1a2e] pt-1.5">
-                  <p className="text-xs font-black uppercase tracking-wider text-[#1a1a2e]">
-                    ____________________________
-                  </p>
-                  <p className="text-[10px] text-gray-500 mt-1">PESO Staff / Encoder</p>
-                  <p className="text-[9px] text-gray-400 mt-0.5">Date: ________________</p>
-                </div>
-              </div>
-
-              {/* Approved by */}
-              <div className="text-center">
-                <p className="text-[9px] font-bold uppercase tracking-widest text-gray-500 mb-8">
-                  Approved by:
-                </p>
-                <div className="border-t border-[#1a1a2e] pt-1.5">
-                  <p className="text-xs font-black uppercase tracking-wider text-[#1a1a2e]">
-                    ____________________________
-                  </p>
-                  <p className="text-[10px] text-gray-500 mt-1">PESO Manager / Governor</p>
-                  <p className="text-[9px] text-gray-400 mt-0.5">Date: ________________</p>
-                </div>
-              </div>
+            {/* ── Signature blocks ───────────────────────────────
+                sig-* class names carry the layout into the print window, which
+                has no Tailwind. Keep both sets of classes on these elements. */}
+            <div className="sig-grid flex flex-row flex-nowrap gap-12 mt-4">
+              <SignatureBlock
+                label="Prepared by:"
+                name={signatories.preparedName}
+                position={signatories.preparedPosition}
+              />
+              <SignatureBlock
+                label="Approved by:"
+                name={signatories.approvedName}
+                position={signatories.approvedPosition}
+              />
             </div>
 
             {/* ── Document footer ────────────────────── */}
